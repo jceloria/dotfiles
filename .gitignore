@@ -1,0 +1,10 @@
+.XWinrc
+.ansible.cfg
+.config
+.gitconfig
+.gnupg
+.ssh
+.vagrant.d
+.vim
+.worldclock.zones
+local

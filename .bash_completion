@@ -1,0 +1,10 @@
+# source compat completion directory definitions
+COMPAT_DIR=~/.bash_completion.d
+################################################################################
+if [[ -d ${COMPAT_DIR} && -r ${COMPAT_DIR} && -x ${COMPAT_DIR} ]]; then
+    for i in ${COMPAT_DIR}/*; do
+        [[ -f ${i} && -r ${i} ]] && source ${i}
+    done
+fi
+################################################################################
+unset COMPAT_DIR i
