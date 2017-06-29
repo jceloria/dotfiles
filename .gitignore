@@ -3,7 +3,8 @@
 .config
 .gitconfig
 .gnupg
-.ssh
+.ssh/*
+!.ssh/config
 .vagrant.d
 .vim
 .worldclock.zones
