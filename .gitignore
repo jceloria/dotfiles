@@ -6,6 +6,7 @@
 .gnupg
 .ssh/*
 !.ssh/config
+!.ssh/config.d/aws
 .vagrant.d
 .vim
 .worldclock.zones
