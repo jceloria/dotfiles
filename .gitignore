@@ -1,3 +1,4 @@
+*.sw*
 .XWinrc
 .ansible.cfg
 .config
