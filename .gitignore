@@ -9,4 +9,5 @@
 .vagrant.d
 .vim
 .worldclock.zones
-local
+local/*
+!local/bin/timeout
