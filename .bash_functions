@@ -329,11 +329,13 @@ function gitPush() {
 # Update remote upstream fork
 function gitUpFork() {
     [[ -z $(type -P git) ]] && return 1
-    local x remote upsrepo
+    local x remote upsrepo branch
 
     git remote -v; echo
     read -p "Add new remote upstream repo? [y/N]: " x
     case ${x} in y*|Y*) remote=1 ;; *) remote=0 ;; esac
+
+    branch=$(git rev-parse --abbrev-ref HEAD)
 
     if [[ ${remote} -eq 1 ]]; then
         while [[ -z ${upsrepo} ]]; do
@@ -344,7 +346,7 @@ function gitUpFork() {
         done
     fi
 
-    git fetch upstream && git checkout master && git merge upstream/master
+    git fetch upstream && git checkout ${branch} && git merge upstream/${branch}
 }
 ########################################################################################################################
 # array element test
