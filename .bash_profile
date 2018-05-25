@@ -71,7 +71,6 @@ alias cpan='perl -MCPAN -e shell'
 alias buildlocal='./configure $* --prefix=${LPREFIX} && make'
 alias curl='curl -C - -sL'
 alias sortIP='sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
-alias webz='python -m SimpleHTTPServer $@'
 alias svim='sudo vim -u ~/.vimrc $@'
 alias virtualenv3='virtualenv -p python3'
 
@@ -156,11 +155,11 @@ shopt -s checkwinsize
 
 # Save bash history
 export HISTFILESIZE= HISTSIZE=
-export HISTCONTROL='ignoreboth:erasedups'
+export HISTCONTROL='ignoreboth'
 export HISTIGNORE='ls:bg:fg:history:HG:hh'
 export HISTTIMEFORMAT="[%F %T] "
 export HISTFILE=${HISTFILE:-~/.bash_history}
-shopt -s histappend direxpand
+shopt -s direxpand
 
 # Check for new dotfiles
 [[ ${gitCheck} -eq 1 ]] && gitCheck && unset gitCheck

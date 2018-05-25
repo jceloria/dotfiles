@@ -40,7 +40,13 @@ function DATE() {
 # generate random string
 function genRandom() {
     local num=${1:-32}
-    cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${num} | head -n 1
+    LC_CTYPE=C tr -dc '[:alnum:]' < /dev/urandom | fold -w ${num} | head -n1
+}
+########################################################################################################################
+# generate random password
+function genPassword() {
+    local num=${1:-12}
+    LC_CTYPE=C tr -dc '[:graph:]' < /dev/urandom | fold -w ${num} | head -n1
 }
 ########################################################################################################################
 # Display seconds in human readable time
@@ -219,7 +225,7 @@ function cpanUserconf() {
 }
 ########################################################################################################################
 # set/unset proxy environment variables
-function proxy() { 
+function setProxy() { 
     local i proxy_vars=(
         http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY
     )
@@ -382,6 +388,12 @@ function tcopy() {
     (cd ${src} && tar cf - .) | (cd ${dest} && tar ${opts} -)
 }
 ########################################################################################################################
+function pad() {
+    local length string end x
+    length=$1; shift; string="# $*"; end=" #"; [[ $# -gt 0 ]] && string+=" "
+    echo -en "${string}"; for ((x=1;x<=(${length}-${#string}-${#end});x++)) { echo -n "-"; }; echo "${end}"
+}
+########################################################################################################################
 # dos2unix
 function dos2unix() {
     [[ $# -lt 1 ]] && return 1
@@ -412,21 +424,6 @@ function unix2dos() {
     return 0
 }
 ########################################################################################################################
-# Get home-assistant states
-function get-hass-states() {
-    local OPTIND OPTSTRING opt host
-
-    while getopts "h:" opt; do
-        case ${opt} in
-            h)  host="${OPTARG}";                           ;;
-            :)  echo "-${OPTARG} requires an argument." >&2 ;;
-        esac
-    done; shift $((${OPTIND} - 1))
-
-    curl -s -X GET -H "Content-Type: application/json" http://${host:-localhost}:8123/api/states | \
-        jq '.[]|select(.entity_id|contains("'$*'"))|{entity_id, state}'
-}
-########################################################################################################################
 # vultr.com API
 function vultrAPI() {
     [[ -z $(type -P pass) ]] && return 1
@@ -450,7 +447,7 @@ function vultrAPI() {
 }
 ########################################################################################################################
 # ssh wrapper to continuously retry if unavailable
-function ssh() {
+function ssh-retry() {
     local next prev host port
     for ((i=1;i<=$#;++i)); do
         next=$((i+1)); [[ $((i-1)) -eq 0 ]] || prev=$((i-1))
@@ -469,5 +466,10 @@ function ssh() {
     done
 
     $(type -P ssh) "$@"
+}
+########################################################################################################################
+# simple web server
+function webz() {
+    hash python3 2>&- && (python3 -m http.server $@ || python -m SimpleHTTPServer $@) 2>/dev/null
 }
 ########################################################################################################################

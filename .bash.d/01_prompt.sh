@@ -58,8 +58,7 @@ function bash_prompt_cmd() {
     touch -a ~/.bash.d/01_prompt.sh # I touch myself to update atime (gitCheck)
 
     # Save bash history
-    builtin history -a
-    builtin history -n
+    builtin history -a; builtin history -c; builtin history -r
 }
 ########################################################################################################################
 function bash_prompt() {
@@ -107,6 +106,7 @@ function bash_prompt() {
 ########################################################################################################################
 
 # Set the prompt!
+shopt -s histappend
 PROMPT_COMMAND="bash_prompt_cmd"
 bash_prompt
 unset bash_prompt

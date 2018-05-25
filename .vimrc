@@ -143,6 +143,14 @@ endif
 " Disable security risk features in .vimrc and .exrc in directories I edit in
 set secure
 
+" Disable backup file on Mac OSX
+if has("unix")
+    let os = substitute(system('uname -s'), "\n", "", "")
+    if os == "Darwin"
+        set nowritebackup
+    endif
+endif
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Setting up Vundle - the vim plugin bundler
 let getVundle=1
@@ -161,8 +169,9 @@ Bundle 'gmarik/vundle'
 " Add your bundles here
 Bundle 'scrooloose/nerdtree'
 Bundle 'jnurmine/Zenburn'
-Bundle 'godlygeek/tabular'
+Bundle 'junegunn/vim-easy-align'
 Bundle 'Shougo/neocomplcache.vim'
+Bundle 'andviro/flake8-vim'
 
 if getVundle == 0
   echo "Installing Bundles, please ignore key map error messages"
@@ -190,6 +199,15 @@ map <leader>n :NERDTreeToggle<CR>
 
 " remove trailing whitespace in puppet files
 autocmd FileType puppet autocmd BufWritePre <buffer> :%s/\s\+$//e
+
+" vim-easy-align
+" Start interactive EasyAlign in visual mode (e.g. vipga)
+xmap ga <Plug>(EasyAlign)
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
+
+" python error checking
+let g:PyFlakeOnWrite = 1
 
 color zenburn
 syn on
