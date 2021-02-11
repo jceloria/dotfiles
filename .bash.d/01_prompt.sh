@@ -1,12 +1,12 @@
 ################################################## set a bash prompt ################################################### 
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
 function gitBranch() {
     type -P git >/dev/null 2>&1 || return 1
     local repo=$(git config --get remote.origin.url 2>/dev/null)
     local branch=$(git symbolic-ref HEAD 2>/dev/null)
     echo ${branch##*refs/heads/}
 }
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
 function gitStatus() {
     type -P git >/dev/null 2>&1 || return 1
 
@@ -25,7 +25,12 @@ function gitStatus() {
 
     printf "${binfo}"
 }
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
+function wdStatus {
+    local x=$(wd status)
+    [[ -z ${x} ]] && return 1 || echo ${x##* }
+}
+# -------------------------------------------------------------------------------------------------------------------- #
 function bash_prompt_cmd() {
     # How many characters of the $PWD should be kept
     local pwdmaxlen=25
@@ -46,12 +51,12 @@ function bash_prompt_cmd() {
 
     local pinfo unique
     [[ ${BASH_VERSINFO} -ge 4 ]] && declare -A unique
-    PC+=(gitStatus); for pinfo in ${PC[@]}; do
+    PC+=(wdStatus gitStatus); for pinfo in ${PC[@]}; do
         if [[ ${BASH_VERSINFO} -ge 4 ]]; then
             [[ ${unique[${pinfo}]} -eq 1 ]] && continue || unique[${pinfo}]=1
         fi
         hash ${pinfo} 2>&- && pinfo=$(${pinfo})
-        [[ ! -z ${pinfo} ]] && { PI=${pinfo}; break; } || continue
+        [[ ! -z ${pinfo} ]] && { PI=${pinfo}; break; } || { unset PI; continue; }
     done; PC=("${!unique[@]}")
 
     [[ ! -e ~/.bash.d ]] && mkdir -p ~/.bash.d
@@ -60,7 +65,7 @@ function bash_prompt_cmd() {
     # Save bash history
     builtin history -a; builtin history -c; builtin history -r
 }
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
 function bash_prompt() {
     local user
     case ${TERM} in
@@ -94,8 +99,8 @@ function bash_prompt() {
     local DIR="\[\e[38;5;75m\]"
 
     # Assign prompt sections
-    local USER_AT_HOST="${BLD}${UND}\u${REG}@${BLD}${UND}\${HN:-\h}${REG}"
-    local INFO="${NC}\${PI:-\l}${REG}"
+    local USER_AT_HOST="${BLD}${UND}\u${REG}@${BLD}${UND}\${HN:-\\h}${REG}"
+    local INFO="${NC}\${PI:-\\l}${REG}"
     local TIME="${NC}\D{%T}${REG}"
     local DIRECTORY="${DIR}\${NEW_PWD}${REG}"
 
@@ -103,7 +108,7 @@ function bash_prompt() {
     PS1="\n${REG}┌❨${USER_AT_HOST}:❬${INFO}❭❩─❨${TIME}❩┐\n"
     PS1="${PS1}└❨${DIRECTORY}❩\\$""─►${NC} "
 }
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
 
 # Set the prompt!
 shopt -s histappend

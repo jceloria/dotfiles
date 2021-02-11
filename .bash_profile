@@ -1,22 +1,23 @@
 # ~/.bash_profile
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
 
 # User specific functions
-[[ -e ~/.bash_functions ]] && source ~/.bash_functions && gitCheck=1
+shopt -s nullglob; declare -a _i; _i=(~/.bash_functions.d/*); shopt -u nullglob
+for i in ${_i[@]}; do [[ -e ${i} ]] && source ${i}; done; unset i _i
 
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
 
 # Additional directories for user's ${PATH}
-pathAppend ~/local/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+pathAppend ~/.local/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 hash manpath 2>&- && {
-    unset MANPATH; export MANPATH=$(manpath):~/local/share/man
+    unset MANPATH; export MANPATH=$(manpath):~/.local/share/man
 }
 
 # General environment variables
 export HOST=${HOST:-$HOSTNAME}
 export SYSTEM=$(uname -s)
 export USER=$(id|sed 's/^.*uid=\([0-9]*\)(\([^)]*\).*/\2/')
-export VIMEDITOR=$(type -P vim)
+export VIMEDITOR=$(type -P nvim || type -P vim)
 export EDITOR=${VIMEDITOR:-vi}
 export LC_COLLATE="C"
 export GPG_TTY=$(tty)
@@ -25,43 +26,52 @@ export GPG_TTY=$(tty)
 [[ ${USER} != 'root' ]] && umask 027
 
 # Local user system specific environment
-export LPREFIX=~/local/${SYSTEM}
+export LPREFIX=~/.local/${SYSTEM}
 pathAppend "${LPREFIX}/bin"
-
 [[ ${MANPATH} ]] && pathAppend "${LPREFIX}/man" MANPATH
-
-[[ -e "${LPREFIX}/profile" ]] && \
-    . "${LPREFIX}/profile"
-
-[[ -d "${HOME}/.fonts" ]] && \
-    export X_FONTPATH="${HOME}/.fonts"
-
-# PERL specific envionment
-export PERLDIR="${LPREFIX}/lib/perl5"
-MAKEPL_ARGS=(PREFIX="${LPREFIX}" LIB="${PERLDIR}"
-    INSTALLMAN1DIR="${LPREFIX}/man/man1"
-    INSTALLMAN3DIR="${LPREFIX}/man/man1"
-)
-pathPrepend "${PERLDIR}" PERL5LIB
-pathAppend "${PERLDIR}/bin"
+[[ -e "${LPREFIX}/profile" ]] && . "${LPREFIX}/profile"
+[[ -d "${HOME}/.fonts" ]] && export X_FONTPATH="${HOME}/.fonts"
 
 # Python specific environment
 export PYTHONIOENCODING="utf-8"
-export VIRTUAL_ENV="${LPREFIX}"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
-[[ -e ${VIRTUAL_ENV}/bin/activate ]] && source ${VIRTUAL_ENV}/bin/activate
+export PYENV_ROOT=~/.pyenv
+if [[ ! -e ${PYENV_ROOT} ]]; then
+    hash git && curl https://pyenv.run | bash
+fi
+pathPrepend ${PYENV_ROOT}/bin
+hash pyenv 2>&- && { eval "$(pyenv init -)" && eval "$(pyenv virtualenv-init -)"; }
+if [[ ! -e ${PYENV_ROOT}/versions/default ]]; then
+    PY3=($(type -a python3|awk '{print $NF}'))
+    if [[ ${#PY3[@]} -gt 1 ]]; then
+        PS3="Multiple python3's found: "
+        while [[ ! ${i} ]]; do
+            select i in ${PY3[@]}; do
+                export PY3=${i}; break
+            done
+            [[ -z ${i} ]] && echo "Invalid selection!"
+        done
+    fi
+    pyenv virtualenv -p ${PY3} default && pyenv global default
+fi
 
-# golang specific envionment
+# Golang specific envionment
 export GOPATH=${LPREFIX}/go
 pathAppend "${GOPATH}/bin"
 
-########################################################################################################################
+# Rust specific environment
+pathAppend ~/.cargo/bin
 
+# Bitwarden configuration
+export BITWARDENCLI_APPDATA_DIR=~/.config/bitwarden-cli
+
+# -------------------------------------------------------------------------------------------------------------------- #
 # Aliases
 alias cp='cp -i'
 alias rm='rm -i'
 alias mv='mv -i'
 alias grep='grep --color -I'
+alias less='less -r'
 alias vi="${EDITOR}"
 alias view="${EDITOR}"
 alias quit='exit'
@@ -71,11 +81,9 @@ alias cpan='perl -MCPAN -e shell'
 alias buildlocal='./configure $* --prefix=${LPREFIX} && make'
 alias curl='curl -C - -sL'
 alias sortIP='sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n'
-alias svim='sudo vim -u ~/.vimrc $@'
-alias virtualenv3='virtualenv -p python3'
+alias strip-text="sed -e $'s,\\(\x1b\\[[0-9;]*[a-zA-Z]\\|^[\x02-\x03]\\),,g'"
 
-########################################################################################################################
-
+# -------------------------------------------------------------------------------------------------------------------- #
 # OS specific
 case ${SYSTEM} in
     CYGWIN_NT*|MSYS_NT*)
@@ -89,9 +97,12 @@ case ${SYSTEM} in
     Darwin)
         x=$(networksetup -listallhardwareports|awk '/Wi-Fi/{getline; print $2}')
         SSID=$(networksetup -getairportnetwork ${x}|awk '{print $NF}'); unset x
-        pathPrepend /usr/local/opt/coreutils/libexec/gnubin
-        hash brew 2>&- && source $(brew --prefix)/etc/bash_completion
-        hash rbenv 2>&- && eval "$(rbenv init -)"
+        hash thefuck 2>&- && eval $(thefuck --alias)
+        hash rbenv 2>&- && eval $(rbenv init -)
+        hash brew 2>&- && {
+            for i in $(brew --prefix)/opt/*/libexec/gnubin; do pathPrepend $i; done
+            for i in $(brew --prefix)/etc/profile.d/*.sh; do source $i; done
+        }
 
         alias ls='ls --color'
     ;;
@@ -113,42 +124,30 @@ case ${SYSTEM} in
     ;;
 esac
 
-########################################################################################################################
-
+# -------------------------------------------------------------------------------------------------------------------- #
 # Host specific
 case ${HOST} in
     *local|*internal)
-        chmod 600 ~/.ssh/id_rsa 2>/dev/null
-        if [[ -d ~/.keychain ]]; then
-            getPID 'keychain.*ssh,gpg' >/dev/null 2>&- && read -p 'Waiting for keychain, [Enter]: '
-            while $(getPID 'keychain.*ssh,gpg' >/dev/null 2>&-); do sleep 1; done
-            eval $(keychain -Q -q --eval --inherit any --agents ssh,gpg id_rsa 6B10F38A)
+        unset SSH_AGENT_PID
+        if [[ -d ~/.gnupg ]] && [[ ! -e ~/.gnupg/trustdb.gpg ]]; then
+            chmod 700 ~/.gnupg && gpg --import-ownertrust < ~/.gnupg/ownertrust.txt
         fi
-
-        if [[ -d ~/Sync/.crypt ]]; then
-            pgrep -f encfs >/dev/null 2>&1 || mount | grep -q .EncFS || \
-                pass Security/EncFS | \
-                    encfs -S $(echo ~/Sync/.crypt) $(echo ~/.EncFS)
+        if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+            export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
         fi
+        gpg-connect-agent updatestartuptty /bye >/dev/null
 
         pathAppend ~/Sync/${SYSTEM}/bin
     ;;
 esac
 
-########################################################################################################################
-
+# -------------------------------------------------------------------------------------------------------------------- #
 # Set our prompt (bash.d/01_prompt.sh will overwrite)
 PS1="\n-(\u@\h:<\l>)->\\$ "
 
-# Source custom bash completion if found...
-[[ -e ~/.bash_completion ]] && source ~/.bash_completion
-
 # Source any additional files if found...
-shopt -s nullglob; declare -a _i; _i=(~/.bash.d/*.sh); shopt -u nullglob
+shopt -s nullglob; declare -a _i; _i=(~/.bash.d/{functions.d/*,*.sh}); shopt -u nullglob
 for i in ${_i[@]}; do [[ -e ${i} ]] && source ${i}; done; unset i _i
-
-# Add local bash-completion
-[[ -e ~/.bash_completion ]] && source ~/.bash_completion
 
 # Check window size and update LINES and COLUMNS after each command
 shopt -s checkwinsize
@@ -162,6 +161,6 @@ export HISTFILE=${HISTFILE:-~/.bash_history}
 shopt -s direxpand
 
 # Check for new dotfiles
-[[ ${gitCheck} -eq 1 ]] && gitCheck && unset gitCheck
+[[ ${gitCheck:=1} -eq 1 ]] && gitCheck && unset gitCheck
 
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #
