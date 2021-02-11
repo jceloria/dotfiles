@@ -1,0 +1,32 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# commit and push any new changes to git repository
+function gitPush() {
+    [[ -z $(type -P git) ]] && return 1
+    local var x msg commit
+
+    [[ $# -gt 0 ]] && msg="$*"
+    var=$(git status -uno --porcelain 2>/dev/null; echo -n x); var="${var%x}"
+
+    if [[ ${#var} > 0 ]]; then
+        git diff && printf "%80s\n"|tr " " "#" 
+        echo -e "Uncomitted changes found in local git repository:"
+        echo -n "${var}"
+
+        read -p "Commit all changes? [y/N]: " x
+        case ${x} in y*|Y*) commit=1 ;; *) commit=0 ;; esac
+
+        if [[ ${commit} -eq 1 ]]; then
+            while [[ -z "${msg}" ]]; do
+                read -p "Enter a message for your changes: " msg
+                if [[ ! -z "${msg}" ]]; then
+                    read -p "Continue? [Y/n]: " x
+                    case ${x} in N*|n*) unset msg ;; esac
+                fi
+            done
+
+            git commit -a -m "${msg}" && git push
+        fi
+    fi
+}
+export -f gitPush
+# -------------------------------------------------------------------------------------------------------------------- #

@@ -1,0 +1,23 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# use gpg to encrypt/decrypt files
+function gCrypt() { 
+    local tar=$(type -P $(GNU tar))
+    hash gpg 2>&- || { echo "gpg executable not found"; return 1; }
+
+    local OPTIND OPTSTRING OUT
+    [[ $# -le 1 ]] && echo "Usage: gCrypt [-d|-e] <file(s)|directory>" >&2
+    [[ $# -eq 2 ]] && OUT="${2%/}.tgz.gpg" || OUT='-'
+
+    gpg="gpg --batch --use-agent -q"
+    while getopts "d:e:" opt; do
+        case ${opt} in
+            d)  shift; ${gpg} -o - ${1%/} | ${tar} xzf - && /bin/rm -f ${1} ;;
+            e)  shift; ${tar} czf - ${@} 2>/dev/null | ${gpg} -ea -o ${OUT} ;;
+            :)  echo "-${OPTARG} requires an argument." >&2                 ;;
+        esac
+    done
+
+    [[ -e "${OUT}" ]] && /bin/rm -rf ${OUT%.tgz.gpg}
+}
+export -f gCrypt
+# -------------------------------------------------------------------------------------------------------------------- #

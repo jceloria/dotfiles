@@ -1,0 +1,12 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# tar copy a directory perserving permissions and structure
+function tcopy() {
+    local src=$1; local dest=${2:?"source and destination are required"}
+
+    [[ ! -e ${dest} ]] && mkdir -p ${dest}
+    [[ ${USER} == 'root' ]] && local opts="xpvf" || opts="xvf"
+
+    (cd ${src} && tar cf - .) | (cd ${dest} && tar ${opts} -)
+}
+export -f tcopy
+# -------------------------------------------------------------------------------------------------------------------- #

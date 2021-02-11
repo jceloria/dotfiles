@@ -1,0 +1,32 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# $PATH manipulation
+function pathRemove() {
+    local IFS=':' NEWPATH DIR PATHVARIABLE=${2:-PATH} MATCH
+    [[ ${BASH_VERSINFO} -ge 4 ]] && declare -A MATCH
+    for DIR in ${!PATHVARIABLE}; do
+        if [[ ${BASH_VERSINFO} -ge 4 ]]; then
+            [[ ${MATCH["${DIR}"]} -eq 1 ]] && continue || MATCH["${DIR}"]=1
+        else
+            MATCH="(^|:)${DIR}(:|$)"
+            [[ ${NEWPATH} =~ ${MATCH} ]] && continue
+        fi
+        if [[ "${DIR}" != "$1" ]] ; then
+            NEWPATH=${NEWPATH:+$NEWPATH:}${DIR}
+        fi
+    done
+    export $PATHVARIABLE="$NEWPATH"
+}
+
+function pathPrepend() {
+    pathRemove $1 $2
+    local PATHVARIABLE=${2:-PATH}
+    export $PATHVARIABLE="$1${!PATHVARIABLE:+:${!PATHVARIABLE}}"
+}
+
+function pathAppend() {
+    pathRemove $1 $2
+    local PATHVARIABLE=${2:-PATH}
+    export $PATHVARIABLE="${!PATHVARIABLE:+${!PATHVARIABLE}:}$1"
+}
+export -f pathRemove pathPrepend pathAppend
+# -------------------------------------------------------------------------------------------------------------------- #

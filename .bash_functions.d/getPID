@@ -1,0 +1,13 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# Get process ids from string
+function getPID() {
+    [[ $# -lt 1 ]] && return 1
+
+    for cmd in pgrep ps; do cmd=$(type -P ${cmd}) && break; done
+    case ${cmd} in
+        *pgrep) ${cmd} -f "$*" 2>/dev/null                                          ;;
+        *ps) ${cmd} ax -o pid,command | awk '$0~/'"$*"'/ && $2!="awk" {print $1}'   ;;
+    esac
+}
+export -f getPID
+# -------------------------------------------------------------------------------------------------------------------- #

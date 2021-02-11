@@ -1,0 +1,6 @@
+# Source any additional bash_completion files if found...
+shopt -s nullglob
+for i in ~/.local/share/bash-completion/* /usr/local/etc/bash_completion.d/*; do
+    [[ -e ${i} ]] && source ${i}
+done; unset i
+shopt -u nullglob

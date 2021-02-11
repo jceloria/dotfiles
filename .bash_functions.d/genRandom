@@ -1,0 +1,11 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# generate random string
+function genRandom() {
+    local count=18 class=graph
+    for i in $@; do
+        case ${i} in [0-9]*) count=${i} ;; *) class=${i} ;; esac
+    done
+    LC_CTYPE=C tr -dc '[:'${class}':]' < /dev/urandom | fold -w ${count} | head -n1
+}
+export -f genRandom
+# -------------------------------------------------------------------------------------------------------------------- #

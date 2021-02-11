@@ -1,0 +1,25 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# Update remote upstream fork
+function gitUpFork() {
+    [[ -z $(type -P git) ]] && return 1
+    local x remote upsrepo branch
+
+    git remote -v; echo
+    read -p "Add new remote upstream repo? [y/N]: " x
+    case ${x} in y*|Y*) remote=1 ;; *) remote=0 ;; esac
+
+    branch=$(git rev-parse --abbrev-ref HEAD)
+
+    if [[ ${remote} -eq 1 ]]; then
+        while [[ -z ${upsrepo} ]]; do
+            read -p "Enter the upstream repository: " upsrepo
+            git remote add upstream ${upsrepo} || {
+                echo "Something wen't wrong adding: ${upsrepo}"; unset upsrepo
+            }
+        done
+    fi
+
+    git fetch upstream && git checkout ${branch} && git merge upstream/${branch}
+}
+export -f gitUpFork
+# -------------------------------------------------------------------------------------------------------------------- #

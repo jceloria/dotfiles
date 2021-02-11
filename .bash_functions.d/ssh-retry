@@ -1,0 +1,24 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# ssh wrapper to continuously retry if unavailable
+function ssh-retry() {
+    local next prev host port
+    for ((i=1;i<=$#;++i)); do
+        next=$((i+1)); [[ $((i-1)) -eq 0 ]] || prev=$((i-1))
+        case "${!i}" in
+            -p*) [[ "${!i}" =~ -p$ ]] && port=${!next} || port=${!i//-p} ;;
+            *@*) host=${!i##*@} ;;
+            -*) true ;;
+            *) [[ ! "${host}" ]] && [[ ! "${!prev}" =~ ^- ]] && host=${!i} ;;
+        esac
+    done
+
+    echo "Waiting for ssh port '${port:=22}' on '${host}' to become available:"
+    ( bash -c "exec {FD}<>/dev/tcp/${host}/${port}" ) &> /dev/null
+    while [[ $? -ne 0 ]]; do
+        sleep 2; ( bash -c "exec {FD}<>/dev/tcp/${host}/${port}" ) &> /dev/null
+    done
+
+    $(type -P ssh) "$@"
+}
+export -f ssh-retry
+# -------------------------------------------------------------------------------------------------------------------- #

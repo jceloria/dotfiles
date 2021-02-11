@@ -1,0 +1,18 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# Generate xkcd type memorable passwords
+function xkcd() {
+    local words="https://gitlab.com/victor-engmark/xkcd-passphrase-generator/-/raw/master/words.txt"
+
+    if [[ ! -e ~/.local/share/words ]]; then
+        curl -s ${words} -o ~/.local/share/words 2>/dev/null && words=~/.local/share/words
+    else
+        words=~/.local/share/words
+    fi
+
+    local -a phrase=($(shuf -i0-99 -n1))
+    phrase+=($(head -n ${1:-2048} ${words:-/usr/share/dict/words} | shuf -n4 | sed 's/./\U&/'))
+
+    echo "${phrase[*]}"
+}
+export -f xkcd
+# -------------------------------------------------------------------------------------------------------------------- #

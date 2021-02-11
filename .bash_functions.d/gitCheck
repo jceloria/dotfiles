@@ -1,0 +1,27 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# pull any new changes from git repository (default hour last accessed)
+function gitCheck() {
+    [[ -z $(type -P git) ]] && return 1
+    (cd ~/ && git symbolic-ref HEAD >/dev/null 2>&1) || return 1
+
+    local i _git=0 sec=${1:-3600} lock="${HOME}/.gitCheck.lock"
+    for i in ~/.bash.d/01_prompt.sh; do
+        [[ ! -e ${i} ]] && continue
+        [[ $(($(getEpoch)-$(getAtime ${i}))) -gt ${sec} ]] && _git=1
+    done
+    if [[ "${_git}" -eq 1 ]]; then
+        if [[ ! -e "${lock}" ]]; then
+            echo "Checking for newer dotfiles..."
+            touch "${lock}"
+        fi
+        (   cd ~/ && \
+            git pull && \
+            git submodule update --init --recursive && \
+            touch ${i}
+        ) && exec bash -l
+    else
+        rm -f "${lock}"
+    fi
+}
+export -f gitCheck
+# -------------------------------------------------------------------------------------------------------------------- #

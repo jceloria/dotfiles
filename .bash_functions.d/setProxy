@@ -1,0 +1,35 @@
+# -------------------------------------------------------------------------------------------------------------------- #
+# set/unset proxy environment variables
+function setProxy() { 
+    local i proxy_vars=(
+        http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY
+    )
+    if [[ ${#PROXIES[@]} -lt 1 ]]; then
+        PROXY=${PROXY:?"evironment variable not set"}
+    elif [[ ${#PROXIES[@]} -gt 1 ]]; then
+        PS3="Multiple proxies found: "
+        while [[ ! ${i} ]]; do
+            select i in ${PROXIES[@]}; do
+                export PROXY=${i}; break
+            done
+            [[ -z ${i} ]] && echo "Invalid selection!"
+        done
+    else
+        PROXY=${PROXIES[0]}
+    fi
+
+    case $1 in
+        on)
+            for i in ${proxy_vars[@]}; do export ${i}=${PROXY}; done
+        ;;
+        off)
+            for i in ${proxy_vars[@]}; do unset ${i}; done
+            [[ ${#PROXIES[@]} -ge 1 ]] && unset PROXY
+        ;;
+        *)
+            echo "Usage: proxy [on|off]"
+        ;;
+    esac
+}
+export -f setProxy
+# -------------------------------------------------------------------------------------------------------------------- #
