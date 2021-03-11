@@ -1,3 +1,4 @@
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 version 5.4             " avoid warning for wrong version
 
 behave xterm            " Sets selectmode, mousemodel, keymodel, selection
@@ -11,15 +12,7 @@ set backspace=2         " allow backspacing over everything in insert mode
 set nobackup            " Don't create backup files
 set cmdheight=2         " Less Hit Return messages
 set nocompatible        " Use Vim defaults (much better!)
-if has("unix")
-   set dictionary=/usr/dict/words  " Use with i-ctrl-X ctrl-K
-endif
 set noerrorbells        " Stop the beeps
-if has("unix")
-   set fileformats=unix,dos,mac  " Allow editing of all types of files
-else
-   set fileformats=dos,unix,mac
-endif
 set history=20          " Keep 20 lines of command line history (use arrow keys for history)
 set incsearch           " Incremental search
 set nohlsearch          " Turn off search highlighting
@@ -50,6 +43,24 @@ set shiftround
 set linebreak
 set wrap
 
+" os dependent settings
+if ! has("unix")
+    " set the size for win32
+    win 80 42
+    set guifont=Courier_New:h8
+    set fileformats=dos,unix,mac
+else
+    set dictionary=/usr/dict/words  " Use with i-ctrl-X ctrl-K
+    set fileformats=unix,dos,mac    " Allow editing of all types of files
+
+    " Disable backup file on Mac OSX
+    let os = substitute(system('uname -s'), "\n", "", "")
+    if os == "Darwin"
+        set nowritebackup
+    endif
+endif
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Set Tab to Spaces
 map <silent> TS :set expandtab<CR>:%retab!<CR>
 " Set Tab back to Tabs
@@ -61,153 +72,86 @@ map <silent> T$ :call NewTabSpacing(4)<CR>
 map <silent> T* :call NewTabSpacing(8)<CR>
 
 function NewTabSpacing (newtabsize)
-   let was_expanded = &expandtab
-   normal TT
-   execute "set ts=" . a:newtabsize
-   execute "set sw=" . a:newtabsize
-   execute "map          F !GautoFormat -T" . a:newtabsize . " -"
-   execute "map <silent> f !GautoFormat -T" . a:newtabsize . "<CR>"
-   if was_expanded
-      normal TS
-   endif
+    let was_expanded = &expandtab
+    normal TT
+    execute "set ts=" . a:newtabsize
+    execute "set sw=" . a:newtabsize
+    execute "map          F !GautoFormat -T" . a:newtabsize . " -"
+    execute "map <silent> f !GautoFormat -T" . a:newtabsize . "<CR>"
+    if was_expanded
+        normal TS
+    endif
 endfunction
+
+" Shift+Tab for tab when expandtab is on
+:inoremap <S-Tab> <C-V><Tab>
 
 " ,j loads the java file starting for this file name.  This
 "    is very common in Net Dynamics so I made an alias
 map ,j :n %:r.java<CR>
 
-"
-" set the size for win32
-"
-if ! has("unix")
-   win 80 42
-   set guifont=Courier_New:h8
-endif
-
-
-augroup cprog
-  au!
-
-  autocmd FileType cpp,c,xs call FT_cpp()
-
-  function FT_cpp()
-    set formatoptions=croql cindent comments=sr:/*,mb:*,el:*/,b:// cinkeys=0{,0},0#,!^F,o,O,e
-    call Set_comments("c")
-  endfunction
-augroup END
-
-
-augroup java
-  au!
-
-  autocmd FileType java call FT_java()
-
-  function FT_java()
-    set formatoptions=croql cindent comments=sr:/*,mb:*,el:*/,b:// cinkeys=0{,0},0#,!^F,o,O,e
-    call Set_comments("j")
-  endfunction
-augroup END
-
-
-augroup perl
-  au!
-
-  autocmd FileType perl call FT_perl()
-
-  function FT_perl()
-    call Set_comments("p")
-  endfunction
-augroup END
-
-
-function Set_comments(type)
-  if has("unix")
-     let perlpath=$VIM
-  else
-     let perlpath="perl " .  $VIM
-  endif
-
-  exe "vmap ,i ! " . perlpath . "/cor.pl -l " . a:type . " -b i<CR>"
-  exe "vmap ,c ! " . perlpath . "/cor.pl -l " . a:type . " -b c<CR>"
-  exe "vmap ,o ! " . perlpath . "/cor.pl -l " . a:type . " -b o<CR>"
-  exe "vmap ,r ! " . perlpath . "/cor.pl -l " . a:type . " -r<CR>"
-endfunction
-
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
 if &t_Co > 2 || has("gui_running")
-  syntax on
-  set hlsearch
+    syntax on
+    set hlsearch
 endif
+
+" indent yaml, jinja files to 2 spaces
+autocmd FileType yaml setl sw=2 sts=2 ts=2 et
+autocmd FileType jinja setl sw=2 sts=2 ts=2 et
+
+" remove trailing whitespace in puppet files
+autocmd FileType puppet autocmd BufWritePre <buffer> :%s/\s\+$//e
 
 " Disable security risk features in .vimrc and .exrc in directories I edit in
 set secure
 
-" Disable backup file on Mac OSX
-if has("unix")
-    let os = substitute(system('uname -s'), "\n", "", "")
-    if os == "Darwin"
-        set nowritebackup
-    endif
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Setup vim-plug (Minimalist Vim Plugin Manager)
+let getVIMPlug=1
+let vim_plug=expand('~/.vim/autoload/plug.vim')
+if !filereadable(vim_plug)
+    echo "Installing plug.vim..."
+    echo ""
+    silent !curl -sfLo ~/.vim/autoload/plug.vim --create-dirs https://git.io/VgrSsw
+    let getVIMPlug=0
 endif
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" Setting up Vundle - the vim plugin bundler
-let getVundle=1
-let vundle_readme=expand('~/.vim/bundle/vundle/README.md')
-if !filereadable(vundle_readme)
-  echo "Installing Vundle..."
-  echo ""
-  silent !mkdir -p ~/.vim/bundle
-  silent !git clone https://github.com/gmarik/vundle ~/.vim/bundle/vundle
-  let getVundle=0
-endif
-set rtp+=~/.vim/bundle/vundle/
+call plug#begin('~/.vim/plugged')
+Plug 'nvie/vim-flake8'
+Plug 'jnurmine/Zenburn'
+Plug 'junegunn/vim-plug'
+Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-surround'
+Plug 'sheerun/vim-polyglot'
+Plug 'Glench/Vim-Jinja2-Syntax'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
+call plug#end()
 
-call vundle#rc()
-Bundle 'gmarik/vundle'
-" Add your bundles here
-Bundle 'scrooloose/nerdtree'
-Bundle 'jnurmine/Zenburn'
-Bundle 'junegunn/vim-easy-align'
-Bundle 'Shougo/neocomplcache.vim'
-Bundle 'andviro/flake8-vim'
-
-if getVundle == 0
-  echo "Installing Bundles, please ignore key map error messages"
-  echo ""
-  :BundleInstall
+if getVIMPlug == 0
+    echo "Installing VIM plugins..."
+    echo ""
+    :PlugInstall
 endif
 
-" Brief help
-" :BundleList          - list configured bundles
-" :BundleInstall(!)    - install (update) bundles
-" :BundleSearch(!) foo - search (or refresh cache first) for foo
-" :BundleClean(!)      - confirm (or auto-approve) removal of unused bundles"
-" see :h vundle for more details or wiki for FAQ
-" NOTE: comments after Bundle commands are not allowed.
-" Setting up Vundle - the vim plugin bundler end
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+filetype plugin on
 
-filetype plugin indent on
+" markdown
+let g:markdown_fenced_languages = ['bash=sh', 'python=py', 'yaml=yml']
 
-" neocomplcache keybindings
+" neocomplcache
 let g:neocomplcache_enable_at_startup = 1
 
 " nerdtree
 map <leader>n :NERDTreeToggle<CR>
 
-" remove trailing whitespace in puppet files
-autocmd FileType puppet autocmd BufWritePre <buffer> :%s/\s\+$//e
-
-" vim-easy-align
-" Start interactive EasyAlign in visual mode (e.g. vipga)
-xmap ga <Plug>(EasyAlign)
-" Start interactive EasyAlign for a motion/text object (e.g. gaip)
-nmap ga <Plug>(EasyAlign)
-
 " python error checking
-let g:PyFlakeOnWrite = 1
+autocmd BufWritePost *.py call flake8#Flake8()
 
 color zenburn
-syn on
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+filetype plugin on
