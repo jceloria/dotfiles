@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------- #
-# get local ip address(es)
+# getIPaddr: Print local ip address(es)
 function getIPaddr() {
     local c=$(type -P ip ifconfig)
     case ${c} in

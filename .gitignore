@@ -9,7 +9,10 @@
 !.config/*
 !.gitconfig
 !.gitignore
-!.gnupg/*
+!.gnupg
+.gnupg/*
+!.gnupg/pubring.kbx
+!.gnupg/private-keys-v1.d
 !.local/*
 !.profile
 !.ssh/*

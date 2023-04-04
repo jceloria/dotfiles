@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# pull any new changes from git repository (default hour last accessed)
+# gitCheck: Pull new changes from git repository (default hour last accessed)
 function gitCheck() {
     [[ -z $(type -P git) ]] && return 1
     (cd ~/ && git symbolic-ref HEAD >/dev/null 2>&1) || return 1
@@ -24,4 +24,5 @@ function gitCheck() {
     fi
 }
 export -f gitCheck
+
 # -------------------------------------------------------------------------------------------------------------------- #

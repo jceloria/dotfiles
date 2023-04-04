@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# Display seconds in human readable time
+# s2htime: Display seconds in human readable time
 function s2htime() {
   local T=$1; local D=$((T/60/60/24)); local H=$((T/60/60%24))
   local M=$((T/60%60)); local S=$((T%60)); local unit; local result
@@ -17,4 +17,5 @@ function s2htime() {
   echo ${result}; return 0
 }
 export -f s2htime
+
 # -------------------------------------------------------------------------------------------------------------------- #

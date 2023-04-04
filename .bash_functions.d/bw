@@ -1,6 +1,9 @@
 # -------------------------------------------------------------------------------------------------------------------- #
+# bw-unlock: Unlock bitwarden cli
 function bw-unlock() {
     export BW_SESSION=$(bw unlock "$(pass bw)" --raw)
+    echo "export BW_SESSION='${BW_SESSION}'" > ~/.bash.d/bw.sh
 }
 export -f bw-unlock
+
 # -------------------------------------------------------------------------------------------------------------------- #

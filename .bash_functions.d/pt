@@ -1,12 +1,15 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# pt: Port Tester
+# pt: Test for open ports
 function pt() {
     [[ -z $(type -P timeout) ]] && return 1
     local arg host port retval
     for arg in $@; do [[ ${arg} =~ ^[0-9]+$ ]] && port=${arg} || host=${arg}; done
-    [[ -z ${port} ]] && port=${host##*:} && port=${port:-22}; host=${host%%:*}
+    if [[ -z ${port} ]]; then
+        [[ ${host} != ${host##*:} ]] && port=${host##*:}
+        host=${host%%:*}
+    fi
 
-    echo -ne "Port \E[1;37m${port}\E[0m on \E[1;37m${host}\E[0m is "
+    echo -ne "Port \E[1;37m${port:=22}\E[0m on \E[1;37m${host:=127.0.0.1}\E[0m is "
     (timeout 3 bash -c "exec {FD}<>/dev/tcp/${host}/${port}") &>/dev/null; retval=$?
     if [[ ${retval} -eq 0 ]]; then
         echo -e '\E[1;32mopen\E[0m'
@@ -17,4 +20,5 @@ function pt() {
     return ${retval}
 }
 export -f pt
+
 # -------------------------------------------------------------------------------------------------------------------- #

@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# ssh wrapper to continuously retry if unavailable
+# ssh-retry: Continuously retry to connect to SSH if unavailable
 function ssh-retry() {
     local next prev host port
     for ((i=1;i<=$#;++i)); do
@@ -21,4 +21,5 @@ function ssh-retry() {
     $(type -P ssh) "$@"
 }
 export -f ssh-retry
+
 # -------------------------------------------------------------------------------------------------------------------- #

@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# Logging function
+# log: Logging function
 function log() {
     local level levels=(notice warning crit)
     level="+($(IFS='|';echo "${levels[*]}"))"
@@ -16,4 +16,5 @@ function log() {
     logger -s -p ${level} -t "[${SELF}:${FUNCNAME[1]}()]" -- $@;
 }
 export -f log
+
 # -------------------------------------------------------------------------------------------------------------------- #

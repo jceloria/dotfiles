@@ -1,5 +1,4 @@
-################################################## set a bash prompt ################################################### 
-# -------------------------------------------------------------------------------------------------------------------- #
+# Set a fancy bash prompt -------------------------------------------------------------------------------------------- #
 function gitBranch() {
     type -P git >/dev/null 2>&1 || return 1
     local repo=$(git config --get remote.origin.url 2>/dev/null)
@@ -26,16 +25,11 @@ function gitStatus() {
     printf "${binfo}"
 }
 # -------------------------------------------------------------------------------------------------------------------- #
-function wdStatus {
-    local x=$(wd status)
-    [[ -z ${x} ]] && return 1 || echo ${x##* }
-}
-# -------------------------------------------------------------------------------------------------------------------- #
 function bash_prompt_cmd() {
-    # How many characters of the $PWD should be kept
+    # How many characters of the ${PWD} should be kept
     local pwdmaxlen=25
 
-    # Indicate that there has been dir truncation
+    # Indicate that there has been truncation
     local trunc_symbol=".."
     local dir=${PWD##*/}
 
@@ -51,7 +45,7 @@ function bash_prompt_cmd() {
 
     local pinfo unique
     [[ ${BASH_VERSINFO} -ge 4 ]] && declare -A unique
-    PC+=(wdStatus gitStatus); for pinfo in ${PC[@]}; do
+    PC+=(gitStatus); for pinfo in ${PC[@]}; do
         if [[ ${BASH_VERSINFO} -ge 4 ]]; then
             [[ ${unique[${pinfo}]} -eq 1 ]] && continue || unique[${pinfo}]=1
         fi
@@ -59,7 +53,7 @@ function bash_prompt_cmd() {
         [[ ! -z ${pinfo} ]] && { PI=${pinfo}; break; } || { unset PI; continue; }
     done; PC=("${!unique[@]}")
 
-    [[ ! -e ~/.bash.d ]] && mkdir -p ~/.bash.d
+    [[ ! -e ~/.bash.d/functions.d ]] && mkdir -p ~/.bash.d/functions.d
     touch -a ~/.bash.d/01_prompt.sh # I touch myself to update atime (gitCheck)
 
     # Save bash history
@@ -82,7 +76,7 @@ function bash_prompt() {
 
     # generate a random color scheme for our prompt
     if [[ ! -e ~/.bash.d/00_colors.sh ]]; then
-        echo "UCOLORS=($(($RANDOM%231)) $(($RANDOM%231)))" > \
+        mkdir -p ~/.bash.d && echo "UCOLORS=($(($RANDOM%231)) $(($RANDOM%231)))" > \
             ~/.bash.d/00_colors.sh && source ~/.bash.d/00_colors.sh
     fi
 
@@ -116,4 +110,4 @@ PROMPT_COMMAND="bash_prompt_cmd"
 bash_prompt
 unset bash_prompt
 
-########################################################################################################################
+# -------------------------------------------------------------------------------------------------------------------- #

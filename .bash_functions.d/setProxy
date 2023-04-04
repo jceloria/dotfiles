@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# set/unset proxy environment variables
+# setProxy: ${PROXY} environment variable manipulation
 function setProxy() { 
     local i proxy_vars=(
         http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY
@@ -32,4 +32,5 @@ function setProxy() {
     esac
 }
 export -f setProxy
+
 # -------------------------------------------------------------------------------------------------------------------- #

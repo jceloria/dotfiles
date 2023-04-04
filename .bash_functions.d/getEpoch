@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# get seconds since epoch
+# getEpoch: Print seconds since epoch
 function getEpoch() {
     local c=$(type -P $(GNU date perl))
     case ${c} in
@@ -10,4 +10,5 @@ function getEpoch() {
     return $?
 }
 export -f getEpoch
+
 # -------------------------------------------------------------------------------------------------------------------- #

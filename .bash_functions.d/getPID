@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# Get process ids from string
+# getPID: Print the process ids from running processes matching a string
 function getPID() {
     [[ $# -lt 1 ]] && return 1
 
@@ -10,4 +10,5 @@ function getPID() {
     esac
 }
 export -f getPID
+
 # -------------------------------------------------------------------------------------------------------------------- #

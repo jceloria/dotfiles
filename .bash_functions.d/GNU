@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# find 1st match for GNU commands
+# GNU: Find the first GNU match given a list of commands
 function GNU() {
     local cmd
     for cmd in $(type -P "${@/#/g}" $@); do
@@ -7,4 +7,5 @@ function GNU() {
     done
 }
 export -f GNU
+
 # -------------------------------------------------------------------------------------------------------------------- #

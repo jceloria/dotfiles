@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# commit and push any new changes to git repository
+# gitPush: Commit and push new changes to git repository
 function gitPush() {
     [[ -z $(type -P git) ]] && return 1
     local var x msg commit
@@ -9,7 +9,7 @@ function gitPush() {
 
     if [[ ${#var} > 0 ]]; then
         git diff && printf "%80s\n"|tr " " "#" 
-        echo -e "Uncomitted changes found in local git repository:"
+        echo -e "Uncommitted changes found in local git repository:"
         echo -n "${var}"
 
         read -p "Commit all changes? [y/N]: " x
@@ -29,4 +29,5 @@ function gitPush() {
     fi
 }
 export -f gitPush
+
 # -------------------------------------------------------------------------------------------------------------------- #

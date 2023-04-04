@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# Update remote upstream fork
+# gitUpFork: Update remote upstream fork
 function gitUpFork() {
     [[ -z $(type -P git) ]] && return 1
     local x remote upsrepo branch
@@ -22,4 +22,5 @@ function gitUpFork() {
     git fetch upstream && git checkout ${branch} && git merge upstream/${branch}
 }
 export -f gitUpFork
+
 # -------------------------------------------------------------------------------------------------------------------- #

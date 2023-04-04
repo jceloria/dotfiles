@@ -32,15 +32,21 @@ pathAppend "${LPREFIX}/bin"
 [[ -e "${LPREFIX}/profile" ]] && . "${LPREFIX}/profile"
 [[ -d "${HOME}/.fonts" ]] && export X_FONTPATH="${HOME}/.fonts"
 
+# NeoVim
+: ${XDG_CONFIG_HOME:=${HOME}/.config}
+if [[ ${VIMEDITOR} = "$(type -P nvim)" ]] && [[ ! -e ${XDG_CONFIG_HOME}/nvim ]]; then
+    mkdir -p ${XDG_CONFIG_HOME}/nvim
+    ln -s ~/.vimrc ${XDG_CONFIG_HOME}/nvim/init.vim
+    ln -s ${XDG_CONFIG_HOME}/nvim ~/.vim
+fi
+
 # Python specific environment
 export PYTHONIOENCODING="utf-8"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 export PYENV_ROOT=~/.pyenv
-if [[ ! -e ${PYENV_ROOT} ]]; then
-    hash git && curl https://pyenv.run | bash
-fi
 pathPrepend ${PYENV_ROOT}/bin
-hash pyenv 2>&- && { eval "$(pyenv init -)" && eval "$(pyenv virtualenv-init -)"; }
+hash pyenv 2>&- || { hash git 2>&- && curl https://pyenv.run | bash; }
+hash pyenv 2>&- && { eval "$(pyenv init --path)" && eval "$(pyenv virtualenv-init -)"; }
 if [[ ! -e ${PYENV_ROOT}/versions/default ]]; then
     PY3=($(type -a python3|awk '{print $NF}'))
     if [[ ${#PY3[@]} -gt 1 ]]; then
@@ -95,10 +101,6 @@ case ${SYSTEM} in
         alias updatedb="updatedb --prunepaths='/proc /cygdrive/[^/]*'"
     ;;
     Darwin)
-        x=$(networksetup -listallhardwareports|awk '/Wi-Fi/{getline; print $2}')
-        SSID=$(networksetup -getairportnetwork ${x}|awk '{print $NF}'); unset x
-        hash thefuck 2>&- && eval $(thefuck --alias)
-        hash rbenv 2>&- && eval $(rbenv init -)
         hash brew 2>&- && {
             for i in $(brew --prefix)/opt/*/libexec/gnubin; do pathPrepend $i; done
             for i in $(brew --prefix)/etc/profile.d/*.sh; do source $i; done
@@ -145,9 +147,10 @@ esac
 # Set our prompt (bash.d/01_prompt.sh will overwrite)
 PS1="\n-(\u@\h:<\l>)->\\$ "
 
-# Source any additional files if found...
-shopt -s nullglob; declare -a _i; _i=(~/.bash.d/{functions.d/*,*.sh}); shopt -u nullglob
-for i in ${_i[@]}; do [[ -e ${i} ]] && source ${i}; done; unset i _i
+# Source additional files if found...
+shopt -s nullglob;
+for f in ~/.bash.d/{functions.d/*,*.sh}; do source ${f}; done; unset f
+shopt -u nullglob
 
 # Check window size and update LINES and COLUMNS after each command
 shopt -s checkwinsize

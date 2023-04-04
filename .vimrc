@@ -4,7 +4,7 @@ version 5.4             " avoid warning for wrong version
 behave xterm            " Sets selectmode, mousemodel, keymodel, selection
 
 filetype off            " Required for vundle
-set mouse-=a            " Disable visual mode
+set mouse=              " Disable visual mode
 set noautoindent        " Turn autoindent off
 set noautowrite         " Don't automatically write the file
 set background=dark     " Make sure we can read the file we are editing
@@ -26,6 +26,7 @@ set shortmess=a         " Abbreviate the status messages
 set showcmd             " Show command I'm typing
 set showmatch           " Show matching brace
 set smarttab            " Tab in front of line uses shiftwidth - good for coding
+set spell               " Spell checking
 set tw=0                " don't automatically wrap my text
 set viminfo='20,\"50    " read/write a .viminfo file, don't store more
                         " than 50 lines of registers
@@ -40,6 +41,8 @@ set tabstop=4
 set softtabstop=4
 set shiftwidth=4
 set shiftround
+set textwidth=0
+set wrapmargin=0
 set linebreak
 set wrap
 
@@ -59,6 +62,8 @@ else
         set nowritebackup
     endif
 endif
+
+filetype plugin on
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Set Tab to Spaces
@@ -97,12 +102,15 @@ if &t_Co > 2 || has("gui_running")
     set hlsearch
 endif
 
-" indent yaml, jinja files to 2 spaces
-autocmd FileType yaml setl sw=2 sts=2 ts=2 et
+" indent jinja & markdown files to 2 spaces
 autocmd FileType jinja setl sw=2 sts=2 ts=2 et
+autocmd FileType markdown setl sw=2 sts=2 ts=2 et
 
-" remove trailing whitespace in puppet files
+" Puppet: set indentation, expandtab, etc.
 autocmd FileType puppet autocmd BufWritePre <buffer> :%s/\s\+$//e
+autocmd FileType puppet setl sw=2 sts=2 ts=2 et
+" remove trailing whitespace in puppet files
+autocmd BufReadPost *.pp set filetype=puppet
 
 " Disable security risk features in .vimrc and .exrc in directories I edit in
 set secure
@@ -119,15 +127,18 @@ if !filereadable(vim_plug)
 endif
 
 call plug#begin('~/.vim/plugged')
-Plug 'nvie/vim-flake8'
+Plug 'Glench/Vim-Jinja2-Syntax'
+Plug 'Yggdroot/indentLine'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 Plug 'jnurmine/Zenburn'
 Plug 'junegunn/vim-plug'
+Plug 'nvie/vim-flake8'
+Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
-Plug 'sheerun/vim-polyglot'
-Plug 'Glench/Vim-Jinja2-Syntax'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown', 'vim-plug']}
 call plug#end()
 
 if getVIMPlug == 0
@@ -137,8 +148,6 @@ if getVIMPlug == 0
 endif
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-filetype plugin on
-
 " markdown
 let g:markdown_fenced_languages = ['bash=sh', 'python=py', 'yaml=yml']
 
@@ -151,7 +160,9 @@ map <leader>n :NERDTreeToggle<CR>
 " python error checking
 autocmd BufWritePost *.py call flake8#Flake8()
 
+" indentLine
+let g:indentLine_enabled = 0
+
 color zenburn
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-filetype plugin on

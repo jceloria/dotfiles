@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# Generate xkcd type memorable passwords
+# xkcd: Generate xkcd type memorable passwords
 function xkcd() {
     local words="https://gitlab.com/victor-engmark/xkcd-passphrase-generator/-/raw/master/words.txt"
 
@@ -10,9 +10,10 @@ function xkcd() {
     fi
 
     local -a phrase=($(shuf -i0-99 -n1))
-    phrase+=($(head -n ${1:-2048} ${words:-/usr/share/dict/words} | shuf -n4 | sed 's/./\U&/'))
+    phrase+=($(head -n ${1:-2048} ${words:-/usr/share/dict/words} | shuf -n4))
 
-    echo "${phrase[*]}"
+    echo "${phrase[*]^}"
 }
 export -f xkcd
+
 # -------------------------------------------------------------------------------------------------------------------- #

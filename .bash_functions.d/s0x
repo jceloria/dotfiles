@@ -1,7 +1,8 @@
 # -------------------------------------------------------------------------------------------------------------------- #
-# open a remote tunnel, connect back with dynamic socks proxy port.
+# s0x: Open a remote tunnel, connect back with dynamic socks proxy port.
 function s0x() {
     ssh -At -R 2080:localhost:22 $* ssh -At -p2080 -D1080 localhost ssh -AtX $*;
 }
 export -f s0x
+
 # -------------------------------------------------------------------------------------------------------------------- #
